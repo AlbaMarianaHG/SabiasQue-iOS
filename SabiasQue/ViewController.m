@@ -50,13 +50,41 @@
     self.factIndex = -1;
     self.view.backgroundColor = [self beigeColor];
 
-    [self showWelcomeScreen];
+    NSArray<NSString *> *arguments =
+        [NSProcessInfo processInfo].arguments;
 
-    // Modo automático para generar evidencias
-    if ([[NSProcessInfo processInfo].arguments
-         containsObject:@"--screenshot-mode"]) {
+    NSUInteger captureIndex =
+        [arguments indexOfObject:@"--capture-screen"];
 
-        [self scheduleScreenshotStep:1];
+    if (captureIndex != NSNotFound &&
+        captureIndex + 1 < arguments.count) {
+
+        NSString *screen = arguments[captureIndex + 1];
+
+        if ([screen isEqualToString:@"welcome"]) {
+            [self showWelcomeScreen];
+        }
+        else if ([screen isEqualToString:@"categories"]) {
+            [self showCategoryScreen];
+        }
+        else if ([screen isEqualToString:@"sports"]) {
+            self.selectedCategory = @"Deportes";
+            [self showFactScreen];
+        }
+        else if ([screen isEqualToString:@"science"]) {
+            self.selectedCategory = @"Ciencia y naturaleza";
+            [self showFactScreen];
+        }
+        else if ([screen isEqualToString:@"technology"]) {
+            self.selectedCategory = @"Tecnología";
+            [self showFactScreen];
+        }
+        else {
+            [self showWelcomeScreen];
+        }
+
+    } else {
+        [self showWelcomeScreen];
     }
 }
 
@@ -407,39 +435,6 @@
 
     self.factSubtitleLabel.text =
     @"¡Sigue descubriendo nuevas curiosidades!";
-}
-
-#pragma mark - Modo automático para capturas
-
-- (void)scheduleScreenshotStep:(NSInteger)step {
-
-    dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6 * NSEC_PER_SEC)),
-        dispatch_get_main_queue(), ^{
-
-            switch (step) {
-
-                case 1:
-                    [self showCategoryScreen];
-                    [self scheduleScreenshotStep:2];
-                    break;
-
-                case 2:
-                    [self selectSports];
-                    [self scheduleScreenshotStep:3];
-                    break;
-
-                case 3:
-                    [self selectScience];
-                    [self scheduleScreenshotStep:4];
-                    break;
-
-                case 4:
-                    [self selectTechnology];
-                    break;
-            }
-        }
-    );
 }
 
 @end

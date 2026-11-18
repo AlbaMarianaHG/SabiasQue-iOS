@@ -44,7 +44,7 @@ jobs:
           ')
 
           if [ -z "$DEVICE_ID" ]; then
-            echo "No available iPhone simulator found."
+            echo "No iPhone simulator available."
             exit 1
           fi
 
@@ -61,43 +61,33 @@ jobs:
             "$DEVICE_ID" \
             "$RUNNER_TEMP/build/SabiasQue.app"
 
-      - name: Launch application in screenshot mode
+      - name: Capture all five screens
         run: |
           mkdir -p "$RUNNER_TEMP/screenshots"
 
-          xcrun simctl launch --terminate-running-process \
-            "$DEVICE_ID" \
-            com.alba.SabiasQue \
-            --screenshot-mode
+          capture_screen() {
+            NAME="$1"
+            SCREEN="$2"
 
-      - name: Capture all five screens
-        run: |
-          SCREENSHOTS="$RUNNER_TEMP/screenshots"
+            echo "Capturing: $NAME"
 
-          # 1. Welcome screen
-          sleep 2
-          xcrun simctl io "$DEVICE_ID" screenshot \
-            "$SCREENSHOTS/01-bienvenida.png"
+            xcrun simctl launch \
+              --terminate-running-process \
+              "$DEVICE_ID" \
+              com.alba.SabiasQue \
+              --capture-screen "$SCREEN"
 
-          # 2. Category selection
-          sleep 5
-          xcrun simctl io "$DEVICE_ID" screenshot \
-            "$SCREENSHOTS/02-categorias.png"
+            sleep 3
 
-          # 3. Sports - FC Barcelona
-          sleep 6
-          xcrun simctl io "$DEVICE_ID" screenshot \
-            "$SCREENSHOTS/03-deportes-barcelona.png"
+            xcrun simctl io "$DEVICE_ID" screenshot \
+              "$RUNNER_TEMP/screenshots/$NAME.png"
+          }
 
-          # 4. Science and nature
-          sleep 6
-          xcrun simctl io "$DEVICE_ID" screenshot \
-            "$SCREENSHOTS/04-ciencia-naturaleza.png"
-
-          # 5. Technology
-          sleep 6
-          xcrun simctl io "$DEVICE_ID" screenshot \
-            "$SCREENSHOTS/05-tecnologia.png"
+          capture_screen "01-bienvenida" "welcome"
+          capture_screen "02-categorias" "categories"
+          capture_screen "03-deportes-barcelona" "sports"
+          capture_screen "04-ciencia-naturaleza" "science"
+          capture_screen "05-tecnologia" "technology"
 
       - name: Upload compiled application
         if: success()
