@@ -25,7 +25,7 @@ jobs:
             -target SabiasQue \
             -sdk iphonesimulator \
             -configuration Debug \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CONFIGURATION_BUILD_DIR="$RUNNER_TEMP/build" \
             CODE_SIGNING_ALLOWED=NO \
             build
 
@@ -34,5 +34,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SabiasQue-iOS-Build
-          path: ${{ runner.temp }}/DerivedData/Build/Products/Debug-iphonesimulator/SabiasQue.app
+          path: ${{ runner.temp }}/build/SabiasQue.app
           if-no-files-found: error
