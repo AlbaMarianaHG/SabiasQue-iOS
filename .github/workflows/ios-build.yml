@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Compile and Run SabiasQue
+    name: Compile and Capture SabiasQue
     runs-on: macos-15-intel
     timeout-minutes: 20
 
@@ -49,7 +49,6 @@ jobs:
           fi
 
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
-          echo "Selected simulator: $DEVICE_ID"
 
       - name: Boot iPhone simulator
         run: |
@@ -62,17 +61,43 @@ jobs:
             "$DEVICE_ID" \
             "$RUNNER_TEMP/build/SabiasQue.app"
 
-      - name: Launch application
-        run: |
-          xcrun simctl launch "$DEVICE_ID" com.alba.SabiasQue
-          sleep 5
-
-      - name: Capture welcome screen
+      - name: Launch application in screenshot mode
         run: |
           mkdir -p "$RUNNER_TEMP/screenshots"
 
+          xcrun simctl launch --terminate-running-process \
+            "$DEVICE_ID" \
+            com.alba.SabiasQue \
+            --screenshot-mode
+
+      - name: Capture all five screens
+        run: |
+          SCREENSHOTS="$RUNNER_TEMP/screenshots"
+
+          # 1. Welcome screen
+          sleep 2
           xcrun simctl io "$DEVICE_ID" screenshot \
-            "$RUNNER_TEMP/screenshots/01-bienvenida.png"
+            "$SCREENSHOTS/01-bienvenida.png"
+
+          # 2. Category selection
+          sleep 5
+          xcrun simctl io "$DEVICE_ID" screenshot \
+            "$SCREENSHOTS/02-categorias.png"
+
+          # 3. Sports - FC Barcelona
+          sleep 6
+          xcrun simctl io "$DEVICE_ID" screenshot \
+            "$SCREENSHOTS/03-deportes-barcelona.png"
+
+          # 4. Science and nature
+          sleep 6
+          xcrun simctl io "$DEVICE_ID" screenshot \
+            "$SCREENSHOTS/04-ciencia-naturaleza.png"
+
+          # 5. Technology
+          sleep 6
+          xcrun simctl io "$DEVICE_ID" screenshot \
+            "$SCREENSHOTS/05-tecnologia.png"
 
       - name: Upload compiled application
         if: success()
@@ -82,10 +107,10 @@ jobs:
           path: ${{ runner.temp }}/build/SabiasQue.app
           if-no-files-found: error
 
-      - name: Upload simulator screenshots
+      - name: Upload all screenshots in one ZIP
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SabiasQue-Screenshots
-          path: ${{ runner.temp }}/screenshots/
+          path: ${{ runner.temp }}/screenshots/*.png
           if-no-files-found: error

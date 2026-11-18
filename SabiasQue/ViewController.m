@@ -51,6 +51,13 @@
     self.view.backgroundColor = [self beigeColor];
 
     [self showWelcomeScreen];
+
+    // Modo automático para generar evidencias
+    if ([[NSProcessInfo processInfo].arguments
+         containsObject:@"--screenshot-mode"]) {
+
+        [self scheduleScreenshotStep:1];
+    }
 }
 
 #pragma mark - Elementos reutilizables
@@ -400,6 +407,39 @@
 
     self.factSubtitleLabel.text =
     @"¡Sigue descubriendo nuevas curiosidades!";
+}
+
+#pragma mark - Modo automático para capturas
+
+- (void)scheduleScreenshotStep:(NSInteger)step {
+
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6 * NSEC_PER_SEC)),
+        dispatch_get_main_queue(), ^{
+
+            switch (step) {
+
+                case 1:
+                    [self showCategoryScreen];
+                    [self scheduleScreenshotStep:2];
+                    break;
+
+                case 2:
+                    [self selectSports];
+                    [self scheduleScreenshotStep:3];
+                    break;
+
+                case 3:
+                    [self selectScience];
+                    [self scheduleScreenshotStep:4];
+                    break;
+
+                case 4:
+                    [self selectTechnology];
+                    break;
+            }
+        }
+    );
 }
 
 @end
